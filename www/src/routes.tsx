@@ -36,6 +36,11 @@ export const routes = {
     pathDef: `${PUBLIC_URL}/mineral-site`,
     exact: true,
   }),
+  geochem: new NoURLArgsPathDef({
+    component: () => <IFrame relurl="/geochem/" />,
+    pathDef: `${PUBLIC_URL}/geochem`,
+    exact: true,
+  }),
   editor: new NoURLArgsPathDef({
     component: EditorPage,
     pathDef: `${PUBLIC_URL}/editor`,
@@ -74,6 +79,14 @@ export const extendedRoutes: Record<keyof typeof routes, ExtendedRoute> = {
     name: "Mineral Site Data",
     route: routes.mineralSite,
     role: Role.Public,
+  },
+  geochem: {
+    // Role.User (not Public like the other IFrame tabs above): GeoChem access is
+    // meant to require MinMod login first, per the original request -- unlike the
+    // read-only dashboard views, this tab is for curators making edits.
+    name: "GeoChem",
+    route: routes.geochem,
+    role: Role.User,
   },
   editor: {
     name: "MinMod Editor",
