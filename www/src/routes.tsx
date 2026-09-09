@@ -1,4 +1,4 @@
-import { NoArgsPathDef, NoURLArgsPathDef, applyLayout } from "gena-app";
+import { NoURLArgsPathDef, applyLayout } from "gena-app";
 import { EditorPage, LoginPage } from "./pages";
 import { ExtendedRoute, Layout } from "./components/Layout";
 import { Role } from "./components/RequiredAuthentication";
@@ -11,10 +11,15 @@ const None = () => <h1>Not supposed to see this page</h1>;
  * Definitions for routes in this application
  */
 export const routes = {
-  login: new NoArgsPathDef({
+  login: new NoURLArgsPathDef({
     component: LoginPage,
     pathDef: `${PUBLIC_URL}/login`,
     exact: true,
+    querySchema: {
+      // where to send the user after a successful login -- set by
+      // RequiredAuthentication when it redirects an unauthenticated visit
+      next: "optionalstring",
+    },
   }),
   dashboard: new NoURLArgsPathDef({
     component: () => <IFrame relurl="/dashboard/" />,
