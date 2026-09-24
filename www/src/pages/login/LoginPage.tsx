@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { routes } from "routes";
 import { useStores } from "models";
 import { useNavigate } from "react-router";
+import { useQueryParams } from "gena-app";
 import { Button, Form, Input, FormProps, Alert } from "antd";
 
 type LoginData = {
@@ -9,23 +10,39 @@ type LoginData = {
   password?: string;
 };
 
+// only follow `next` if it's a same-origin in-app path -- it comes from a URL query
+// param an attacker could craft, so a bare `/\/` prefix check keeps this from ever
+// being used to bounce a logged-in user off to an external site (e.g. `next=//evil.com`)
+const isSafeNextPath = (next: string): boolean => next.startsWith("/") && !next.startsWith("//");
+
 export const LoginPage = () => {
   const { userStore } = useStores();
   const navigate = useNavigate();
+  const queryArgs = useQueryParams(routes.login);
+  const next = queryArgs?.next;
 
   const [error, setError] = useState<string>("");
 
+  const goToNextOrHome = () => {
+    if (next !== undefined && isSafeNextPath(next)) {
+      navigate(next);
+    } else {
+      routes.editor.path({ queryArgs: { commodity: undefined, depositType: undefined, country: undefined, stateOrProvince: undefined } }).open(navigate);
+    }
+  };
+
   useEffect(() => {
     userStore.isLoggedIn().then((isLoggedIn) => {
-      if (isLoggedIn) routes.editor.path({ queryArgs: { commodity: undefined, depositType: undefined, country: undefined, stateOrProvince: undefined } }).open(navigate);
+      if (isLoggedIn) goToNextOrHome();
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userStore, navigate]);
 
   const onFinish: FormProps<LoginData>["onFinish"] = async (values: LoginData) => {
     if (values.username !== undefined && values.password !== undefined) {
       try {
         await userStore.login(values.username, values.password);
-        routes.editor.path({ queryArgs: { commodity: undefined, depositType: undefined, country: undefined, stateOrProvince: undefined } }).open(navigate);
+        goToNextOrHome();
       } catch (err: any) {
         if (err.response?.status === 401) {
           setError("Username or password is wrong.");

@@ -1,4 +1,4 @@
-import { NoArgsPathDef, NoURLArgsPathDef, applyLayout } from "gena-app";
+import { NoURLArgsPathDef, applyLayout } from "gena-app";
 import { EditorPage, LoginPage } from "./pages";
 import { ExtendedRoute, Layout } from "./components/Layout";
 import { Role } from "./components/RequiredAuthentication";
@@ -11,10 +11,15 @@ const None = () => <h1>Not supposed to see this page</h1>;
  * Definitions for routes in this application
  */
 export const routes = {
-  login: new NoArgsPathDef({
+  login: new NoURLArgsPathDef({
     component: LoginPage,
     pathDef: `${PUBLIC_URL}/login`,
     exact: true,
+    querySchema: {
+      // where to send the user after a successful login -- set by
+      // RequiredAuthentication when it redirects an unauthenticated visit
+      next: "optionalstring",
+    },
   }),
   dashboard: new NoURLArgsPathDef({
     component: () => <IFrame relurl="/dashboard/" />,
@@ -34,6 +39,11 @@ export const routes = {
   mineralSite: new NoURLArgsPathDef({
     component: () => <IFrame relurl="/dashboard/mineralsite" />,
     pathDef: `${PUBLIC_URL}/mineral-site`,
+    exact: true,
+  }),
+  geochem: new NoURLArgsPathDef({
+    component: () => <IFrame relurl="/geochem/" />,
+    pathDef: `${PUBLIC_URL}/geochem`,
     exact: true,
   }),
   editor: new NoURLArgsPathDef({
@@ -74,6 +84,14 @@ export const extendedRoutes: Record<keyof typeof routes, ExtendedRoute> = {
     name: "Mineral Site Data",
     route: routes.mineralSite,
     role: Role.Public,
+  },
+  geochem: {
+    // Role.User (not Public like the other IFrame tabs above): GeoChem access is
+    // meant to require MinMod login first, per the original request -- unlike the
+    // read-only dashboard views, this tab is for curators making edits.
+    name: "GeoChem",
+    route: routes.geochem,
+    role: Role.User,
   },
   editor: {
     name: "MinMod Editor",
