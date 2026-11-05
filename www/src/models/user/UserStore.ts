@@ -17,7 +17,8 @@ export class UserStore extends RStore<string, User> {
   // id of the logged-in user. `records` is a shared cache that also holds other contributors
   // (fetched to show who edited what), so it cannot tell us who the viewer is.
   currentUserId: string | undefined = undefined;
-  // whether we have asked the server about the session at least once
+  // whether the server has told us if there is a session (stays false while /whoami keeps failing
+  // for reasons other than auth, e.g. a 5xx or network error)
   sessionChecked: boolean = false;
 
   constructor() {
@@ -60,9 +61,15 @@ export class UserStore extends RStore<string, User> {
       });
       return true;
     } catch (err) {
-      runInAction(() => {
-        this.clearCurrentUser();
-      });
+      // only an auth rejection means "not logged in" -- the API answers /whoami with 403 when there
+      // is no session and 401 when it is invalid. Anything else (5xx, network blip) leaves the session
+      // unknown so it can be checked again, instead of dropping a logged-in user into view-only mode.
+      const status = axios.isAxiosError(err) ? err.response?.status : undefined;
+      if (status === 401 || status === 403) {
+        runInAction(() => {
+          this.clearCurrentUser();
+        });
+      }
       return false;
     }
   }

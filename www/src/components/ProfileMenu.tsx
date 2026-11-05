@@ -5,7 +5,8 @@ import { useLocation, useNavigate } from "react-router";
 import { UserOutlined, LogoutOutlined, LoginOutlined } from "@ant-design/icons";
 import { observer } from "mobx-react-lite";
 import { getActiveRouteName } from "gena-app";
-import { routes } from "routes";
+import { extendedRoutes, routes } from "routes";
+import { Role } from "./RequiredAuthentication";
 
 export const ProfileMenu: React.FC = observer(() => {
   const { userStore } = useStores();
@@ -47,8 +48,13 @@ export const ProfileMenu: React.FC = observer(() => {
   const handleMenuClick = (e: { key: string }) => {
     if (e.key === "logout") {
       userStore.logout();
-      // the editor is public, so logging out just drops back into view-only mode
-      routes.editor.path({ queryArgs: { commodity: undefined, depositType: undefined, country: undefined, stateOrProvince: undefined } }).open(navigate);
+      // stay on the current page (public pages, including the editor, just switch to view-only).
+      // RequiredAuthentication only re-checks on navigation, so a page that needs a login has to
+      // be left explicitly.
+      const name = getActiveRouteName(location, routes) as keyof typeof routes | undefined;
+      if (name !== undefined && extendedRoutes[name].role !== Role.Public) {
+        routes.login.path({ queryArgs: { next: `${location.pathname}${location.search}` } }).open(navigate);
+      }
     }
   };
 
