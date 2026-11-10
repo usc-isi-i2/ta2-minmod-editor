@@ -16,6 +16,8 @@ interface SearchBarProps {
   setSearchArgs: (args: SearchArgs) => void;
   onOpenNewMineralSiteForm: () => void;
   normSearchArgs: NormSearchArgs;
+  // when true, hide the controls that create or modify data (view-only pages)
+  readonly?: boolean;
 }
 
 interface SearchArgs {
@@ -160,7 +162,7 @@ export function useSearchArgs(): [SearchArgs, NormSearchArgs, (newArgs: SearchAr
   return [args, normArgs, updateSearchArgs];
 }
 
-export const SearchBar: React.FC<SearchBarProps> = observer(({ searchArgs, setSearchArgs, onOpenNewMineralSiteForm, normSearchArgs }) => {
+export const SearchBar: React.FC<SearchBarProps> = observer(({ searchArgs, setSearchArgs, onOpenNewMineralSiteForm, normSearchArgs, readonly }) => {
   const { commodityStore, countryStore, stateOrProvinceStore, depositTypeStore, settingStore } = useStores();
 
   const commodityOptions = useMemo(() => {
@@ -269,9 +271,11 @@ export const SearchBar: React.FC<SearchBarProps> = observer(({ searchArgs, setSe
         />
       </Space>
       <Space>
-        <Button type="primary" onClick={onOpenNewMineralSiteForm}>
-          Add Mineral Site
-        </Button>
+        {!readonly && (
+          <Button type="primary" onClick={onOpenNewMineralSiteForm}>
+            Add Mineral Site
+          </Button>
+        )}
         <Button type="primary" icon={<SettingOutlined />} onClick={() => settingStore.showSetting()}></Button>
         <AddFieldModal />
         <DownloadButton normSearchArgs={normSearchArgs} />

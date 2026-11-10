@@ -41,6 +41,11 @@ export const routes = {
     pathDef: `${PUBLIC_URL}/mineral-site`,
     exact: true,
   }),
+  byproduct: new NoURLArgsPathDef({
+    component: () => <IFrame relurl="/dashboard/byproduct" />,
+    pathDef: `${PUBLIC_URL}/byproduct`,
+    exact: true,
+  }),
   geochem: new NoURLArgsPathDef({
     component: () => <IFrame relurl="/geochem/" />,
     pathDef: `${PUBLIC_URL}/geochem`,
@@ -85,6 +90,11 @@ export const extendedRoutes: Record<keyof typeof routes, ExtendedRoute> = {
     route: routes.mineralSite,
     role: Role.Public,
   },
+  byproduct: {
+    name: "By-Product Data",
+    route: routes.byproduct,
+    role: Role.Public,
+  },
   geochem: {
     // Role.User (not Public like the other IFrame tabs above): GeoChem access is
     // meant to require MinMod login first, per the original request -- unlike the
@@ -96,7 +106,8 @@ export const extendedRoutes: Record<keyof typeof routes, ExtendedRoute> = {
   editor: {
     name: "MinMod Editor",
     route: routes.editor,
-    role: Role.User,
+    // anyone can browse the editor read-only; logging in unlocks editing
+    role: Role.Public,
   },
 };
 
