@@ -14,7 +14,7 @@ import { DownloadButton } from "./DownloadDataButton";
 interface SearchBarProps {
   searchArgs: SearchArgs;
   setSearchArgs: (args: SearchArgs) => void;
-  onOpenNewMineralSiteForm?: () => void;
+  onOpenNewMineralSiteForm: () => void;
   normSearchArgs: NormSearchArgs;
   // when true, hide the controls that create or modify data (view-only pages)
   readonly?: boolean;
@@ -34,13 +34,10 @@ export interface NormSearchArgs {
   stateOrProvince?: StateOrProvince;
 }
 
-// the page that owns the search bar; its query schema must match the four search filters
-export type SearchRoute = typeof routes.editor;
-
-export function useSearchArgs(route: SearchRoute): [SearchArgs, NormSearchArgs, (newArgs: SearchArgs) => void] {
+export function useSearchArgs(): [SearchArgs, NormSearchArgs, (newArgs: SearchArgs) => void] {
   const { commodityStore, countryStore, stateOrProvinceStore, depositTypeStore } = useStores();
   const navigate = useNavigate();
-  const queryParams = useQueryParams(route);
+  const queryParams = useQueryParams(routes.editor);
 
   const [args, setArgs] = useState<SearchArgs>({
     commodity: undefined,
@@ -51,7 +48,7 @@ export function useSearchArgs(route: SearchRoute): [SearchArgs, NormSearchArgs, 
 
   const updateSearchArgs = (newArgs: SearchArgs) => {
     setArgs(newArgs);
-    route
+    routes.editor
       .path({
         queryArgs: {
           commodity: newArgs.commodity,

@@ -17,7 +17,12 @@ export const InitNonCriticalStores = ({ children }: { children: ReactElement }) 
     let cancelled = false;
     const checkSession = (attempt: number) => {
       userStore.isLoggedIn().then(() => {
-        if (cancelled || userStore.sessionChecked || attempt >= retryDelays.length) return;
+        if (cancelled || userStore.sessionChecked) return;
+        if (attempt >= retryDelays.length) {
+          // give up: treat as logged out so the Login button shows
+          userStore.clearCurrentUser();
+          return;
+        }
         timer = setTimeout(() => checkSession(attempt + 1), retryDelays[attempt]);
       });
     };
